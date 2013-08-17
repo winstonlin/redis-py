@@ -31,6 +31,11 @@ f = open(os.path.join(os.path.dirname(__file__), 'README.rst'))
 long_description = f.read()
 f.close()
 
+if os.path.isfile('redis/_pack.c'):
+    ext_modules = [Extension('redis._pack', ['redis/_pack.c'])]
+else:
+    ext_modules = []
+
 setup(
     name='redis',
     version=__version__,
@@ -60,5 +65,5 @@ setup(
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
     ],
-    ext_modules = [Extension('redis._pack', ['redis/_pack.c'])],
+    ext_modules = ext_modules,
 )
