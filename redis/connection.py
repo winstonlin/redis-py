@@ -44,18 +44,15 @@ except ImportError:
 
     def _pack_command(self, *args):
         "Pack a series of arguments into a value Redis command"
-        output = BytesIO()
-        output.write(SYM_STAR)
-        output.write(b(str(len(args))))
-        output.write(SYM_CRLF)
+        output = [SYM_STAR, b(str(len(args))), SYM_CRLF]
         for arg in args:
             enc_value = _encode(self, arg)
-            output.write(SYM_DOLLAR)
-            output.write(b(str(len(enc_value))))
-            output.write(SYM_CRLF)
-            output.write(enc_value)
-            output.write(SYM_CRLF)
-        return output.getvalue()
+            output.append(SYM_DOLLAR)
+            output.append(b(str(len(enc_value))))
+            output.append(SYM_CRLF)
+            output.append(enc_value)
+            output.append(SYM_CRLF)
+        return ''.join(output)
 
 
 class PythonParser(object):
