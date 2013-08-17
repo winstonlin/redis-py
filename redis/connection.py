@@ -27,6 +27,33 @@ SYM_DOLLAR = b('$')
 SYM_CRLF = b('\r\n')
 SYM_LF = b('\n')
 
+try:
+    from ._pack import _pack_command
+except ImportError:
+    def _encode(value):
+        "Return a bytestring representation of the value"
+        if isinstance(value, bytes):
+            return value
+        if isinstance(value, float):
+            value = repr(value)
+        if not isinstance(value, basestring):
+            value = str(value)
+        if isinstance(value, unicode):
+            value = value.encode('utf-8')
+        return value
+
+    def _pack_command(*args):
+        "Pack a series of arguments into a value Redis command"
+        output = [SYM_STAR, str(len(args)), SYM_CRLF]
+        for value in args:
+            enc_value = _encode(value)
+            output.append(SYM_DOLLAR)
+            output.append(str(len(enc_value)))
+            output.append(SYM_CRLF)
+            output.append(enc_value)
+            output.append(SYM_CRLF)
+        return ''.join(output)
+
 
 class PythonParser(object):
     "Plain Python parsing class"
@@ -302,7 +329,7 @@ class Connection(object):
 
     def send_command(self, *args):
         "Pack and send a command to the Redis server"
-        self.send_packed_command(self.pack_command(*args))
+        self.send_packed_command(_pack_command(*args))
 
     def read_response(self):
         "Read the response from a previously sent command"
@@ -314,32 +341,6 @@ class Connection(object):
         if isinstance(response, ResponseError):
             raise response
         return response
-
-    def encode(self, value):
-        "Return a bytestring representation of the value"
-        if isinstance(value, bytes):
-            return value
-        if isinstance(value, float):
-            value = repr(value)
-        if not isinstance(value, basestring):
-            value = str(value)
-        if isinstance(value, unicode):
-            value = value.encode(self.encoding, self.encoding_errors)
-        return value
-
-    def pack_command(self, *args):
-        "Pack a series of arguments into a value Redis command"
-        output = BytesIO()
-        output.write(SYM_STAR)
-        output.write(b(str(len(args))))
-        output.write(SYM_CRLF)
-        for enc_value in imap(self.encode, args):
-            output.write(SYM_DOLLAR)
-            output.write(b(str(len(enc_value))))
-            output.write(SYM_CRLF)
-            output.write(enc_value)
-            output.write(SYM_CRLF)
-        return output.getvalue()
 
 
 class UnixDomainSocketConnection(Connection):
