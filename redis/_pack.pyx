@@ -28,4 +28,4 @@ def _pack_command(self, *args):
         output.append(SYM_CRLF)
         output.append(enc_value)
         output.append(SYM_CRLF)
-    return ''.join(output)
+    return b''.join(output)

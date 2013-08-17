@@ -52,7 +52,7 @@ except ImportError:
             output.append(SYM_CRLF)
             output.append(enc_value)
             output.append(SYM_CRLF)
-        return ''.join(output)
+        return b('').join(output)
 
 
 class PythonParser(object):
@@ -329,7 +329,10 @@ class Connection(object):
 
     def send_command(self, *args):
         "Pack and send a command to the Redis server"
-        self.send_packed_command(_pack_command(self, *args))
+        self.send_packed_command(self.pack_command(*args))
+
+    def pack_command(self, *args):
+        return _pack_command(self, *args)
 
     def read_response(self):
         "Read the response from a previously sent command"
