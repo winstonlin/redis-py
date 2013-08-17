@@ -1,5 +1,6 @@
 from socket import socket as _socket
 
+
 class socket(object):
     'patch socket for testing'
     def __init__(self, *args, **kwargs):
